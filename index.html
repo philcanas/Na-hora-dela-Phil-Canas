@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Uma música feita com amor. Para Ana Luiza, no Dia das Mães.">
+  <meta property="og:title" content="Na hora dela — Phil Cañas">
+  <meta property="og:description" content="Uma música feita com amor. Para Ana Luiza, no Dia das Mães.">
+  <meta property="og:type" content="website">
+  <title>Na hora dela — Phil Cañas</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --gold: #d4af37;
+      --gold-light: #f0d060;
+      --text: rgba(255,255,255,0.70);
+      --text-dim: rgba(255,255,255,0.30);
+      --overlay: rgba(13,17,23,0.97);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      height: 100%;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: Georgia, 'Times New Roman', serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: opacity 0.8s ease;
+    }
+    #splash-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 35%, rgba(212,175,55,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    #splash-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 40px 32px;
+      position: relative;
+      z-index: 1;
+      max-width: 380px;
+      width: 100%;
+    }
+    .ornament {
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: 6px;
+      opacity: 0.45;
+      margin-bottom: 24px;
+    }
+    #splash-content h1 {
+      color: var(--gold);
+      font-size: clamp(26px, 7vw, 32px);
+      font-style: italic;
+      font-weight: normal;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .artist {
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-style: normal;
+      margin-bottom: 28px;
+    }
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: rgba(212,175,55,0.2);
+      margin-bottom: 28px;
+    }
+    .dedication {
+      color: rgba(255,255,255,0.60);
+      font-style: italic;
+      font-size: clamp(14px, 4vw, 16px);
+      line-height: 1.9;
+      margin-bottom: 44px;
+    }
+    #play-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(212,175,55,0.2);
+      transition: box-shadow 0.2s, transform 0.1s;
+      margin-bottom: 4px;
+      padding: 8px;
+      margin-top: -8px;
+    }
+    #play-btn:active { transform: scale(0.95); }
+    #play-btn:hover  { box-shadow: 0 0 36px rgba(212,175,55,0.35); }
+    #play-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 4px;
+    }
+    #play-btn svg {
+      color: var(--gold);
+      width: 18px;
+      height: 20px;
+    }
+    .play-label {
+      color: rgba(212,175,55,0.45);
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-style: normal;
+    }
+  #player {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+.photo-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.8s ease;
+}
+#photo-a { opacity: 1; }
+.photo-layer--back { opacity: 0; }
+
+#top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 16px 20px;
+  background: linear-gradient(to bottom, var(--bg), transparent);
+  z-index: 3;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.top-title  { color: var(--gold); opacity: 0.85; }
+.top-dot    { color: var(--text-dim); }
+.top-artist { color: var(--text-dim); }
+
+#bottom-panel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+#gradient-fade {
+  height: 160px;
+  background: linear-gradient(to bottom, transparent, var(--overlay));
+  pointer-events: none;
+}
+#lyrics-wrap {
+  background: var(--overlay);
+  height: 180px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#lyrics-wrap::-webkit-scrollbar { display: none; }
+#lyrics-inner {
+  padding: 0 24px 40px;
+  text-align: center;
+}
+.stanza { margin-bottom: 28px; }
+.stanza p {
+  font-style: italic;
+  font-size: clamp(13px, 3.8vw, 15px);
+  line-height: 1.85;
+  color: var(--text);
+}
+#progress-wrap {
+  height: 2px;
+  background: rgba(255,255,255,0.07);
+}
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, var(--gold), var(--gold-light));
+  transition: width 0.4s linear;
+}
+#time-wrap {
+  background: var(--overlay);
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 20px calc(14px + env(safe-area-inset-bottom));
+  font-size: 10px;
+  color: var(--text-dim);
+  font-style: normal;
+}
+#end-screen {
+  display: flex; /* JS shows by setting display:flex; starts hidden via opacity */
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(13,17,23,0.88);
+  z-index: 5;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  transition: opacity 0.6s ease;
+}
+.end-line1 {
+  color: var(--gold);
+  font-style: italic;
+  font-size: clamp(18px, 5vw, 22px);
+  margin-bottom: 12px;
+}
+.end-line2 {
+  color: rgba(255,255,255,0.7);
+  font-style: italic;
+  font-size: clamp(15px, 4vw, 18px);
+}
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div id="splash-glow"></div>
+    <div id="splash-content">
+      <div class="ornament" aria-hidden="true">✦ ✦ ✦</div>
+      <h1>Na hora dela</h1>
+      <p class="artist">Phil Cañas</p>
+      <div class="divider"></div>
+      <p class="dedication">
+        Para Ana Luiza,<br>
+        que virou o coração<br>
+        do meu coração<br>
+        e a melhor mãe<br>
+        que eu poderia imaginar.
+      </p>
+      <button id="play-btn" aria-label="Tocar música">
+        <svg aria-hidden="true" width="18" height="20" viewBox="0 0 18 20" fill="none">
+          <path d="M1 1l16 9-16 9V1z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <p class="play-label">Toque para começar</p>
+    </div>
+  </div>
+
+  <div id="player" style="display:none; opacity:0; transition:opacity 0.8s ease;">
+    <img id="photo-a" class="photo-layer" alt="">
+    <img id="photo-b" class="photo-layer photo-layer--back" alt="">
+
+    <div id="top-bar">
+      <span class="top-title">Na hora dela</span>
+      <span class="top-dot"> · </span>
+      <span class="top-artist">Phil Cañas</span>
+    </div>
+
+    <div id="bottom-panel">
+      <div id="gradient-fade"></div>
+      <div id="lyrics-wrap">
+        <div id="lyrics-inner">
+  <div class="stanza">
+    <p>No meio de um bar qualquer</p>
+    <p>luz baixa, som no ar</p>
+    <p>eu só fazia o meu papel</p>
+    <p>sem saber quem ia chegar</p>
+  </div>
+  <div class="stanza">
+    <p>E então você atravessou</p>
+    <p>como quem muda o lugar</p>
+    <p>vestido preto, o tempo parou</p>
+    <p>e uma coruja a me observar</p>
+  </div>
+  <div class="stanza">
+    <p>Foi pouco tempo, foi suficiente</p>
+    <p>pra eu querer te conhecer</p>
+    <p>entre um intervalo e outro</p>
+    <p>eu já não sabia mais o que dizer</p>
+  </div>
+  <div class="stanza">
+    <p>Te chamei pra ver um show</p>
+    <p>Beatles em outra voz</p>
+    <p>e mesmo sem nome pra nós dois</p>
+    <p>já parecia ser só nós</p>
+  </div>
+  <div class="stanza">
+    <p>E numa foto sem te marcar</p>
+    <p>eu tentei disfarçar</p>
+    <p>mas deixei escapar no detalhe</p>
+    <p>o que eu já não dava pra negar</p>
+  </div>
+  <div class="stanza">
+    <p>companhia maravilhosa</p>
+    <p>sem ninguém entender</p>
+    <p>mas quem olhasse de perto</p>
+    <p>já via você em mim e eu em você</p>
+  </div>
+  <div class="stanza">
+    <p>Que tinha algo ali</p>
+    <p>que eu não sabia explicar</p>
+    <p>mas sabia sentir</p>
+    <p>que não era só passar</p>
+  </div>
+  <div class="stanza">
+    <p>Era mais do que um encontro</p>
+    <p>mais do que coincidência</p>
+    <p>era o começo de tudo</p>
+    <p>sem pedir licença</p>
+  </div>
+  <div class="stanza">
+    <p>E teve um tempo de silêncio</p>
+    <p>um espaço pra pensar</p>
+    <p>não foi dor, nem despedida</p>
+    <p>foi só o mundo pedindo lugar</p>
+  </div>
+  <div class="stanza">
+    <p>Mas a saudade veio clara</p>
+    <p>sem esforço pra entender</p>
+    <p>amar sempre foi escolha</p>
+    <p>e eu escolhi você</p>
+  </div>
+  <div class="stanza">
+    <p>E desde então a vida abriu</p>
+    <p>porta por porta pra nós</p>
+    <p>um lar, um sim, um compromisso</p>
+    <p>um caminho feito a dois</p>
+  </div>
+  <div class="stanza">
+    <p>E o que já era amor</p>
+    <p>ganhou outra dimensão</p>
+    <p>quando você virou</p>
+    <p>o coração do coração</p>
+  </div>
+  <div class="stanza">
+    <p>Você é mais que o que eu sonhei</p>
+    <p>é o que eu nem sabia existir</p>
+    <p>é força, é calma, é direção</p>
+    <p>é o motivo de eu insistir</p>
+  </div>
+  <div class="stanza">
+    <p>E quando o mundo pesa</p>
+    <p>é você quem sustenta o chão</p>
+    <p>a melhor mãe do mundo</p>
+    <p>na forma mais pura de amor em ação</p>
+  </div>
+  <div class="stanza">
+    <p>E quando ela chegou</p>
+    <p>do jeito que a gente sonhou</p>
+    <p>planejada em cada detalhe</p>
+    <p>e ainda assim nos atravessou</p>
+  </div>
+  <div class="stanza">
+    <p>Veio na primeira tentativa</p>
+    <p>como se já soubesse o caminho</p>
+    <p>e mesmo quando os testes negavam</p>
+    <p>ela já tava com a gente, ali, pertinho</p>
+  </div>
+  <div class="stanza">
+    <p>E naquela noite comum</p>
+    <p>entre pressa, exame e jantar</p>
+    <p>a vida virou silêncio</p>
+    <p>quando a gente parou pra olhar</p>
+  </div>
+  <div class="stanza">
+    <p>trinta minutos sem palavra</p>
+    <p>só tentando entender</p>
+    <p>que o amor que a gente construiu</p>
+    <p>tinha aprendido a nascer</p>
+  </div>
+  <div class="stanza">
+    <p>Luz, cuidado, madrugada</p>
+    <p>medo e fé lado a lado</p>
+    <p>e você ali, inteira</p>
+    <p>mesmo quando tudo era neblina</p>
+  </div>
+  <div class="stanza">
+    <p>Se doía, você ficava</p>
+    <p>se caía, você erguia</p>
+    <p>se faltava, você dava</p>
+    <p>tudo que em você existia</p>
+  </div>
+  <div class="stanza">
+    <p>Você virou leoa</p>
+    <p>virou abrigo e direção</p>
+    <p>ninguém toca no seu mundo</p>
+    <p>sem sentir sua proteção</p>
+  </div>
+  <div class="stanza">
+    <p>E eu te vejo… e aprendo</p>
+    <p>a ser mais do que já fui</p>
+    <p>porque o teu jeito de amar</p>
+    <p>transforma tudo que inclui</p>
+  </div>
+  <div class="stanza">
+    <p>Você é mais que o amor da minha vida</p>
+    <p>é a vida inteira em você</p>
+    <p>é o agora, é o futuro</p>
+    <p>é tudo que ainda vai ser</p>
+  </div>
+  <div class="stanza">
+    <p>Ana… você é casa</p>
+    <p>é começo e é raiz</p>
+    <p>e a nossa Alícia é a prova</p>
+    <p>do amor mais bonito que a gente fez</p>
+  </div>
+  <div class="stanza">
+    <p>E quando o mundo desacelerar</p>
+    <p>nos nossos cafés de manhã</p>
+    <p>eu ainda vou te olhar</p>
+    <p>com o mesmo brilho ao ver você e a Alícia chegar...</p>
+  </div>
+        </div>
+      </div>
+      <div id="progress-wrap">
+        <div id="progress-bar"></div>
+      </div>
+      <div id="time-wrap">
+        <span id="time-cur">0:00</span>
+        <span id="time-tot">5:43</span>
+      </div>
+    </div>
+
+    <div id="end-screen">
+      <div>
+        <div class="ornament" aria-hidden="true" style="margin-bottom:20px;">✦ ✦ ✦</div>
+        <p class="end-line1">Com todo o meu amor,</p>
+        <p class="end-line2">Phil ♥</p>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio" src="audio/Philcanas - No hora dela.mp3" preload="auto"></audio>
+
+  <script>
+const splash   = document.getElementById('splash');
+const player   = document.getElementById('player');
+const playBtn  = document.getElementById('play-btn');
+const audio    = document.getElementById('audio');
+const imgA     = document.getElementById('photo-a');
+const imgB     = document.getElementById('photo-b');
+const lyricsWrap  = document.getElementById('lyrics-wrap');
+const lyricsInner = document.getElementById('lyrics-inner');
+const progressBar = document.getElementById('progress-bar');
+const timeCur     = document.getElementById('time-cur');
+const endScreen   = document.getElementById('end-screen');
+
+let rafId = null;
+let activeSlot = 'a';
+let currentPhotoIdx = -1;
+
+const PHOTOS = [
+  'Foto 27-04-2014 18 11 33.jpg',
+  'IMG_20180610_194446_068.jpg',
+  'IMG_20180612_134750_927.jpg',
+  'IMG_20180907_141516_121.jpg',
+  '_MG_6775.JPG',
+  '_MG_6830_SITE.JPG',
+  '_MG_6964.JPG',
+  '_MG_7084.JPG',
+  '_MG_7124.JPG',
+  '_MG_7213 (2).JPG',
+  'DSC_6210.jpg',
+  'DSC_6348.jpg',
+  'DSC_6414.jpg',
+  'DSC_6462.jpg',
+  'DSC_6529.jpg',
+  'DSC_6564.jpg',
+  'DSC_6590.jpg',
+  'DSC_6633.jpg',
+  'DSC_6636.jpg',
+  'DSC_6756.jpg',
+  'DSC_6798.jpg',
+  'DSC_6808.jpg',
+  'DSC_6973.jpg',
+  'DSC_6994.jpg',
+  'DSC_7229.jpg',
+  '20210214_153154.jpg',
+  '20210214_153846.jpg',
+  '20210214_171450.jpg',
+  '20210215_202147.jpg',
+  '20210504_201615.jpg',
+  '20210606_172333.jpg',
+  '20211231_234247.jpg',
+  '20220212_165511.jpg',
+  '20220402_181127.jpg',
+  '20220702_153946.jpg',
+  '20221014_214130.jpg',
+  '20221203_161626.jpg',
+  '20221214_100408.jpg',
+  '20230201_221924.jpg',
+  '20230220_114005.jpg',
+  '20230317_052610.jpg',
+  '20230317_052653.jpg',
+  '20230317_055833.jpg',
+  '20230409_193955.jpg',
+  '20230701_192225.jpg',
+  '20230826_100142.jpg',
+  '20230916_135533.jpg',
+  '20230922_194033.jpg',
+  '20231028_193657.jpg',
+  '20231226_103439.jpg',
+  '20231231_212949.jpg',
+  '20240105_130023.jpg',
+  '20240224_114826.jpg',
+  '20240317_081613.jpg',
+  '20240804_102149.jpg',
+  '20240817_100137.jpg',
+  '20241005_102505.jpg',
+  '20241005_112015.jpg',
+  '20241103_193613.jpg',
+  '20241130_102605.jpg',
+  '20241208_184215.jpg',
+  '20241224_205141.jpg',
+  '20250103_214200.jpg',
+  '20250105_102910.jpg',
+  '20250111_184813.jpg',
+  '20250215_174900.jpg',
+  '20250317_082738.jpg',
+  '20250628_215129.jpg',
+  '20250629_112155.jpg',
+  '20250817_114840.jpg',
+  '20251116_110311.jpg',
+  '20260328_145418.jpg',
+];
+
+function photoSrc(idx) {
+  return 'fotos/' + encodeURIComponent(PHOTOS[idx]);
+}
+
+function preload(idx) {
+  if (idx >= 0 && idx < PHOTOS.length) {
+    const img = new Image();
+    img.src = photoSrc(idx);
+  }
+}
+
+function showPhoto(idx) {
+  if (idx === currentPhotoIdx) return;
+  currentPhotoIdx = idx;
+  const incoming = activeSlot === 'a' ? imgB : imgA;
+  const outgoing  = activeSlot === 'a' ? imgA : imgB;
+  const nextSlot  = activeSlot === 'a' ? 'b' : 'a';
+  incoming.src = photoSrc(idx);
+  incoming.decode()
+    .catch(() => {})
+    .finally(() => {
+      incoming.style.opacity = '1';
+      outgoing.style.opacity  = '0';
+      activeSlot = nextSlot;
+      preload(idx + 1);
+      preload(idx + 2);
+    });
+}
+
+function updateSlideshow() {
+  if (!audio.duration) return;
+  const interval = audio.duration / PHOTOS.length;
+  const idx = Math.min(Math.floor(audio.currentTime / interval), PHOTOS.length - 1);
+  showPhoto(idx);
+}
+
+/* Stubs replaced by other tasks */
+function syncLyrics() {
+  if (!audio.duration) return;
+  const progress = audio.currentTime / audio.duration;
+  const maxScroll = lyricsInner.scrollHeight - lyricsWrap.clientHeight;
+  if (maxScroll > 0) lyricsWrap.scrollTop = progress * maxScroll;
+}
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60).toString().padStart(2, '0');
+  return m + ':' + s;
+}
+
+function updateProgress() {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  progressBar.style.width = pct + '%';
+  timeCur.textContent = formatTime(audio.currentTime);
+}
+
+function startExperience() {
+  playBtn.disabled = true;
+  preload(0); preload(1); preload(2);
+
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => {
+          splash.style.display = 'none';
+          player.style.display = 'block';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            player.style.opacity = '1';
+          }));
+          startLoop();
+        }, 800);
+      })
+      .catch(err => {
+        console.warn('Playback blocked:', err);
+        playBtn.disabled = false;
+      });
+  } else {
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.style.display = 'none';
+      player.style.display = 'block';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        player.style.opacity = '1';
+      }));
+      startLoop();
+    }, 800);
+  }
+}
+
+function startLoop() {
+  function loop() {
+    syncLyrics();
+    updateProgress();
+    updateSlideshow();
+    rafId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+audio.addEventListener('ended', () => {
+  if (rafId !== null) cancelAnimationFrame(rafId);
+  rafId = null;
+  endScreen.style.opacity = '1';
+  endScreen.style.pointerEvents = 'auto';
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  const m = Math.floor(audio.duration / 60);
+  const s = String(Math.floor(audio.duration % 60)).padStart(2, '0');
+  document.getElementById('time-tot').textContent = m + ':' + s;
+});
+
+playBtn.addEventListener('click', startExperience);
+  </script>
+</body>
+</html>
