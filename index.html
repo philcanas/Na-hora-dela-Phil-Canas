@@ -575,12 +575,47 @@ function updateSlideshow() {
   showPhoto(idx);
 }
 
-/* Stubs replaced by other tasks */
-function syncLyrics() {
-  if (!audio.duration) return;
-  const progress = audio.currentTime / audio.duration;
+const LYRIC_SYNC_TIMES = [
+  8, 22, 36, 50, 64,
+  78, 91, 104, 118, 132,
+  146, 160, 174, 188, 203,
+  217, 232, 246, 260, 274,
+  288, 301, 314, 327, 338
+];
+const lyricStanzas = Array.from(lyricsInner.querySelectorAll('.stanza'));
+
+function getStanzaScrollTarget(idx) {
+  const stanza = lyricStanzas[idx];
+  if (!stanza) return 0;
   const maxScroll = lyricsInner.scrollHeight - lyricsWrap.clientHeight;
-  if (maxScroll > 0) lyricsWrap.scrollTop = progress * maxScroll;
+  const centered = stanza.offsetTop - ((lyricsWrap.clientHeight - stanza.offsetHeight) / 2);
+  return Math.max(0, Math.min(centered, maxScroll));
+}
+
+function syncLyrics() {
+  if (!audio.duration || lyricStanzas.length === 0) return;
+
+  const currentTime = audio.currentTime;
+  if (currentTime <= LYRIC_SYNC_TIMES[0]) {
+    lyricsWrap.scrollTop = 0;
+    return;
+  }
+
+  const lastIdx = LYRIC_SYNC_TIMES.length - 1;
+  if (currentTime >= LYRIC_SYNC_TIMES[lastIdx]) {
+    lyricsWrap.scrollTop = getStanzaScrollTarget(lastIdx);
+    return;
+  }
+
+  let idx = 0;
+  while (idx < lastIdx && currentTime >= LYRIC_SYNC_TIMES[idx + 1]) idx++;
+
+  const startTime = LYRIC_SYNC_TIMES[idx];
+  const endTime = LYRIC_SYNC_TIMES[idx + 1];
+  const startScroll = getStanzaScrollTarget(idx);
+  const endScroll = getStanzaScrollTarget(idx + 1);
+  const segmentProgress = (currentTime - startTime) / (endTime - startTime);
+  lyricsWrap.scrollTop = startScroll + ((endScroll - startScroll) * segmentProgress);
 }
 function formatTime(secs) {
   const m = Math.floor(secs / 60);
